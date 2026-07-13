@@ -1,11 +1,11 @@
 modLoader = "javafml"
 loaderVersion = "[4,)"
 license = "MIT"
-issueTrackerURL = ""
+issueTrackerURL = "https://github.com/Daeden-JL/Create-Backpack-Logistics/issues"
 
 [[mods]]
 modId = "backpack_logistics"
-version = "1.0.0"
+version = "${version}"
 displayName = "Create: Backpack Logistics"
 authors = "Dae"
 description = '''

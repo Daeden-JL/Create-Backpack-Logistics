@@ -108,6 +108,30 @@ It degrades gracefully instead of blocking connections:
 - **Sender**: upgrade base + transmitter + 2× hopper + cardboard
 - **Advanced Sender**: Sender + 3× transmitter + diamond
 
+## Releases and auto-updates
+
+Releases are published automatically: pushing a tag `vX.Y.Z` builds the mod in CI and creates a
+GitHub release carrying the jar, a table of required dependencies, and a machine-readable
+`dependencies.json` used by the in-game updater.
+
+- **Servers** check the latest GitHub release on startup. If a newer version exists **and** every
+  dependency it declares is installed in a matching version, the new jar is downloaded (checksum-
+  and content-verified), the old jar replaced, and the update takes effect on the next restart.
+  Online operators are notified in chat.
+- **Clients** report their mod version when joining a server with this mod. If the server has a
+  newer version (running, or freshly downloaded and pending restart), it streams the jar to the
+  client, which verifies it and swaps its own copy — taking effect on the next game launch.
+- All of it can be turned off in `config/backpack_logistics-common.toml`:
+  `checkForUpdates`, `autoDownloadUpdates` (server side), `acceptUpdatesFromServer` (client side).
+
+> Security note: auto-update means executable code is fetched from this repo's releases (server)
+> or from the server you join (client). Downloads are SHA-256-verified against the release digest
+> or the transfer header, and rejected unless they are a valid jar of this very mod with the
+> expected version. If that trade-off isn't right for your setup, disable the config toggles.
+
+Cutting a release: bump `mod_version` in `gradle.properties`, commit, then
+`git tag vX.Y.Z && git push origin vX.Y.Z`.
+
 ## Building
 
 Requires JDK 21 (Gradle resolves everything else). Dependencies come from public mavens

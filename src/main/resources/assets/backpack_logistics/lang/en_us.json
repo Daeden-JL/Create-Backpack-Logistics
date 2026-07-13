@@ -70,6 +70,10 @@
   "backpack_logistics.ponder.sender.text_3": "Enter the address of a Bee Port; a Robo Bee will fly to you and collect the excess as a package",
   "backpack_logistics.ponder.sender.text_4": "The bee delivers it to the Bee Port whose address filter matches, which pushes the items into adjacent inventories",
 
+  "message.backpack_logistics.update_installed": "[Backpack Logistics] Update %s downloaded - it will take effect on the next server restart.",
+  "message.backpack_logistics.update_staged": "[Backpack Logistics] Update %s was downloaded but the old jar could not be replaced automatically - finish the swap in the mods folder manually.",
+  "message.backpack_logistics.update_failed": "[Backpack Logistics] Update %s could not be installed - see the log for details.",
+  "message.backpack_logistics.client_update_installed": "[Backpack Logistics] Version %s received from the server - restart your game to apply it.",
   "message.backpack_logistics.server_missing": "[Backpack Logistics] This server does not have Create: Backpack Logistics installed - its upgrades, items and recipes will be unavailable until it is added to the server's mods folder.",
   "message.backpack_logistics.client_missing": "[Backpack Logistics] Your client does not have Create: Backpack Logistics installed - backpack upgrade settings tabs will not be usable. Install the mod on your client for the full experience."
 }
