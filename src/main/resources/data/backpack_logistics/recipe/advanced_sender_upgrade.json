@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " t ",
+    "tst",
+    " d "
+  ],
+  "key": {
+    "t": {
+      "item": "create:transmitter"
+    },
+    "s": {
+      "item": "backpack_logistics:sender_upgrade"
+    },
+    "d": {
+      "item": "minecraft:diamond"
+    }
+  },
+  "result": {
+    "id": "backpack_logistics:advanced_sender_upgrade",
+    "count": 1
+  }
+}

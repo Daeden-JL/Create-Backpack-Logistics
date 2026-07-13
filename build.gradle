@@ -1,0 +1,98 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.78'
+}
+
+version = mod_version
+group = 'dev.dae.backpacklogistics'
+
+base {
+    archivesName = 'create_backpack_logistics'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+neoForge {
+    version = neoforge_version
+
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+        }
+    }
+
+    mods {
+        backpack_logistics {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+repositories {
+    maven {
+        url = 'https://maven.createmod.net'
+        content { includeGroupByRegex '(com\\.simibubi|net\\.createmod|dev\\.engine.room).*' }
+    }
+    maven {
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+    maven {
+        url = 'https://maven.shedaniel.me'
+        content { includeGroup 'me.shedaniel' }
+    }
+    maven {
+        url = 'https://maven.blamejared.com'
+        content { includeGroup 'mezz.jei' }
+    }
+}
+
+// Ponder, Flywheel and Registrate are compile-time dependencies of Create's API surface.
+// Rather than chasing their mavens, extract the exact versions Create bundles via jar-in-jar.
+configurations {
+    createBundled
+}
+
+def createBundledLibsDir = layout.buildDirectory.dir('createBundledLibs')
+
+tasks.register('extractCreateBundledLibs', Copy) {
+    from(configurations.createBundled.elements.map { jars -> jars.collect { zipTree(it.asFile) } }) {
+        include 'META-INF/jarjar/*.jar'
+        eachFile { fcd -> fcd.relativePath = new org.gradle.api.file.RelativePath(true, fcd.name) }
+        includeEmptyDirs = false
+    }
+    into createBundledLibsDir
+}
+
+dependencies {
+    compileOnly("com.simibubi.create:create-${minecraft_version}:${create_version}") { transitive = false }
+    createBundled("com.simibubi.create:create-${minecraft_version}:${create_version}") { transitive = false }
+
+    compileOnly("maven.modrinth:sophisticated-core:${sophisticated_core_version}") { transitive = false }
+    compileOnly("maven.modrinth:sophisticated-backpacks:${sophisticated_backpacks_version}") { transitive = false }
+    compileOnly("maven.modrinth:create-mobile-packages:${create_mobile_packages_version}") { transitive = false }
+
+    // recipe viewer integrations
+    compileOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}") { transitive = false }
+    compileOnly("maven.modrinth:architectury-api:${architectury_version}") { transitive = false }
+    compileOnly("me.shedaniel:RoughlyEnoughItems-api-neoforge:${rei_version}") { transitive = false }
+    compileOnly("me.shedaniel:RoughlyEnoughItems-default-plugin-neoforge:${rei_version}") { transitive = false }
+}
+
+tasks.named('compileJava') {
+    dependsOn 'extractCreateBundledLibs'
+    doFirst {
+        classpath += files(createBundledLibsDir.get().asFileTree.matching { include '*.jar' })
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}

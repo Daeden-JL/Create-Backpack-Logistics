@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "backpack_logistics:auto_unpacker_upgrade",
+    "backpack_logistics:stock_caller_upgrade",
+    "backpack_logistics:advanced_stock_caller_upgrade",
+    "backpack_logistics:sender_upgrade",
+    "backpack_logistics:advanced_sender_upgrade"
+  ]
+}

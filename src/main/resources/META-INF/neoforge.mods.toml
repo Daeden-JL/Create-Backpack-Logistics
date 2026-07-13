@@ -1,0 +1,58 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MIT"
+issueTrackerURL = ""
+
+[[mods]]
+modId = "backpack_logistics"
+version = "1.0.0"
+displayName = "Create: Backpack Logistics"
+authors = "Dae"
+description = '''
+Backpack modules bridging Create's logistics networks, Create Mobile Packages and Sophisticated Backpacks.
+
+Adds an Auto-Unpacker upgrade that unboxes packages addressed to you straight into your backpack,
+and Stock Caller upgrades that keep your backpack stocked by ordering items from a linked logistics network.
+'''
+
+[[dependencies.backpack_logistics]]
+modId = "neoforge"
+type = "required"
+range = "[21.1.0,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.backpack_logistics]]
+modId = "minecraft"
+type = "required"
+range = "[1.21.1,1.21.2)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.backpack_logistics]]
+modId = "create"
+type = "required"
+range = "[6.0.0,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.backpack_logistics]]
+modId = "sophisticatedcore"
+type = "required"
+range = "[1.4,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.backpack_logistics]]
+modId = "sophisticatedbackpacks"
+type = "required"
+range = "[3.25,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.backpack_logistics]]
+modId = "create_mobile_packages"
+type = "required"
+range = "[0.7,)"
+ordering = "AFTER"
+side = "BOTH"

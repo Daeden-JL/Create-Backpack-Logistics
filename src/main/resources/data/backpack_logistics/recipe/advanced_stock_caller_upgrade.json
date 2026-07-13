@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " t ",
+    "tst",
+    " d "
+  ],
+  "key": {
+    "t": {
+      "item": "create:transmitter"
+    },
+    "s": {
+      "item": "backpack_logistics:stock_caller_upgrade"
+    },
+    "d": {
+      "item": "minecraft:diamond"
+    }
+  },
+  "result": {
+    "id": "backpack_logistics:advanced_stock_caller_upgrade",
+    "count": 1
+  }
+}

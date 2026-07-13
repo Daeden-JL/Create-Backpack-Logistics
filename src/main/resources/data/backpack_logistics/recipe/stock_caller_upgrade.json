@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " t ",
+    "rur",
+    " c "
+  ],
+  "key": {
+    "t": {
+      "item": "create:transmitter"
+    },
+    "u": {
+      "item": "backpack_logistics:auto_unpacker_upgrade"
+    },
+    "r": {
+      "item": "minecraft:redstone"
+    },
+    "c": {
+      "item": "create:cardboard"
+    }
+  },
+  "result": {
+    "id": "backpack_logistics:stock_caller_upgrade",
+    "count": 1
+  }
+}

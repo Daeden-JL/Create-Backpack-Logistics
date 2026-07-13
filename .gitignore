@@ -1,0 +1,17 @@
+# build artifacts
+.gradle/
+build/
+out/
+bin/
+
+# dev-server working directory (contains third-party mod jars for runtime testing)
+run/
+
+# local compile jars (superseded by the extractCreateBundledLibs task)
+libs/
+
+# IDE
+.idea/
+.vscode/
+*.launch
+*.iml
