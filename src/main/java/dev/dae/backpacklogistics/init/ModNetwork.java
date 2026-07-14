@@ -51,6 +51,19 @@ public class ModNetwork {
 		}
 	}
 
+	/** Server -> client: announces the version the server is actually running. */
+	public record ServerVersionPayload(String version) implements CustomPacketPayload {
+		public static final CustomPacketPayload.Type<ServerVersionPayload> TYPE =
+				new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(BackpackLogistics.MOD_ID, "server_version"));
+		public static final StreamCodec<RegistryFriendlyByteBuf, ServerVersionPayload> STREAM_CODEC =
+				StreamCodec.composite(ByteBufCodecs.STRING_UTF8, ServerVersionPayload::version, ServerVersionPayload::new);
+
+		@Override
+		public CustomPacketPayload.Type<ServerVersionPayload> type() {
+			return TYPE;
+		}
+	}
+
 	/** Server -> client: header of an incoming jar transfer. */
 	public record UpdateStartPayload(String version, int totalSize, int chunkCount, String sha256) implements CustomPacketPayload {
 		public static final CustomPacketPayload.Type<UpdateStartPayload> TYPE =
@@ -89,6 +102,11 @@ public class ModNetwork {
 		registrar.playToServer(VersionHelloPayload.TYPE, VersionHelloPayload.STREAM_CODEC, (payload, context) -> {
 			if (context.player() instanceof ServerPlayer serverPlayer) {
 				context.enqueueWork(() -> ServerUpdateSender.onClientVersionHello(serverPlayer, payload.version()));
+			}
+		});
+		registrar.playToClient(ServerVersionPayload.TYPE, ServerVersionPayload.STREAM_CODEC, (payload, context) -> {
+			if (FMLEnvironment.dist.isClient()) {
+				context.enqueueWork(() -> ClientUpdateReceiver.onServerVersion(payload.version()));
 			}
 		});
 		registrar.playToClient(UpdateStartPayload.TYPE, UpdateStartPayload.STREAM_CODEC, (payload, context) -> {

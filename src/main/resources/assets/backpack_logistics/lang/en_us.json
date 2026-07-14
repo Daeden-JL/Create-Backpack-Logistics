@@ -73,6 +73,8 @@
   "backpack_logistics.ponder.sender.text_3": "Enter the address of a Bee Port; a Robo Bee will fly to you and collect the excess as a package",
   "backpack_logistics.ponder.sender.text_4": "The bee delivers it to the Bee Port whose address filter matches, which pushes the items into adjacent inventories",
 
+  "message.backpack_logistics.server_outdated": "[Backpack Logistics] The server is still running version %s while you have %s - newer features (like per-item thresholds) will not work correctly until the server restarts and applies its downloaded update.",
+  "message.backpack_logistics.update_pending_restart": "[Backpack Logistics] Version %s is downloaded and waiting - restart the server to apply it.",
   "message.backpack_logistics.update_installed": "[Backpack Logistics] Update %s downloaded - it will take effect on the next server restart.",
   "message.backpack_logistics.update_staged": "[Backpack Logistics] Update %s was downloaded but the old jar could not be replaced automatically - finish the swap in the mods folder manually.",
   "message.backpack_logistics.update_failed": "[Backpack Logistics] Update %s could not be installed - see the log for details.",

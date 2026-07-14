@@ -29,6 +29,15 @@ public class ServerUpdateSender {
 		pendingUpdate = new PendingUpdate(version, jarBytes, UpdateUtil.sha256(jarBytes));
 	}
 
+	/** The version downloaded and waiting for a server restart, or null when up to date. */
+	@Nullable
+	public static String getPendingRestartVersion() {
+		PendingUpdate pending = pendingUpdate;
+		return pending != null && UpdateUtil.isNewerVersion(pending.version(), UpdateUtil.currentVersion())
+				? pending.version()
+				: null;
+	}
+
 	public static void onClientVersionHello(ServerPlayer player, String clientVersion) {
 		PendingUpdate newest = newestAvailable();
 		if (newest == null || !UpdateUtil.isNewerVersion(newest.version(), clientVersion)) {

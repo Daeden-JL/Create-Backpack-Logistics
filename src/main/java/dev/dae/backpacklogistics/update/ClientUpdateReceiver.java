@@ -18,6 +18,25 @@ public class ClientUpdateReceiver {
 
 	private ClientUpdateReceiver() {}
 
+	/**
+	 * Warns the player when the server is still running an OLDER version than this client -
+	 * the window after a server auto-downloaded an update but has not restarted yet. New
+	 * features (like per-slot thresholds) silently degrade in that window, so say so.
+	 */
+	public static void onServerVersion(String serverVersion) {
+		if (!UpdateUtil.isNewerVersion(UpdateUtil.currentVersion(), serverVersion)) {
+			return;
+		}
+		Component message = Component.translatable("message.backpack_logistics.server_outdated",
+				serverVersion, UpdateUtil.currentVersion()).withStyle(ChatFormatting.GOLD);
+		Minecraft minecraft = Minecraft.getInstance();
+		minecraft.execute(() -> {
+			if (minecraft.player != null) {
+				minecraft.player.displayClientMessage(message, false);
+			}
+		});
+	}
+
 	public static void onUpdateStart(ModNetwork.UpdateStartPayload payload) {
 		if (!BackpackLogisticsConfig.ACCEPT_UPDATES_FROM_SERVER.get()) {
 			UpdateUtil.LOGGER.info("Server offered Backpack Logistics {} but acceptUpdatesFromServer is disabled", payload.version());
