@@ -12,6 +12,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 public class StockCallerUpgradeContainer extends UpgradeContainerBase<StockCallerUpgradeWrapper, StockCallerUpgradeContainer> {
 	private static final String DATA_LOWER_THRESHOLD = "lowerThreshold";
 	private static final String DATA_UPPER_THRESHOLD = "upperThreshold";
+	private static final String DATA_THRESHOLD_SLOT = "thresholdSlot";
 	private static final String DATA_DELIVERY_ADDRESS = "deliveryAddress";
 
 	private final FilterLogicContainer<FilterLogic> filterLogicContainer;
@@ -29,9 +30,9 @@ public class StockCallerUpgradeContainer extends UpgradeContainerBase<StockCalle
 	@Override
 	public void handlePacket(CompoundTag data) {
 		if (data.contains(DATA_LOWER_THRESHOLD)) {
-			upgradeWrapper.setLowerThreshold(data.getInt(DATA_LOWER_THRESHOLD));
+			upgradeWrapper.setLowerThreshold(data.getInt(DATA_THRESHOLD_SLOT), data.getInt(DATA_LOWER_THRESHOLD));
 		} else if (data.contains(DATA_UPPER_THRESHOLD)) {
-			upgradeWrapper.setUpperThreshold(data.getInt(DATA_UPPER_THRESHOLD));
+			upgradeWrapper.setUpperThreshold(data.getInt(DATA_THRESHOLD_SLOT), data.getInt(DATA_UPPER_THRESHOLD));
 		} else if (data.contains(DATA_DELIVERY_ADDRESS)) {
 			upgradeWrapper.setDeliveryAddress(data.getString(DATA_DELIVERY_ADDRESS));
 		} else {
@@ -39,30 +40,42 @@ public class StockCallerUpgradeContainer extends UpgradeContainerBase<StockCalle
 		}
 	}
 
-	public int getLowerThreshold() {
-		return upgradeWrapper.getLowerThreshold();
+	public int getLowerThreshold(int slot) {
+		return upgradeWrapper.getLowerThreshold(slot);
 	}
 
-	public void setLowerThreshold(int lowerThreshold) {
-		upgradeWrapper.setLowerThreshold(lowerThreshold);
+	public void setLowerThreshold(int slot, int lowerThreshold) {
+		upgradeWrapper.setLowerThreshold(slot, lowerThreshold);
 		sendDataToServer(() -> {
 			CompoundTag tag = new CompoundTag();
+			tag.putInt(DATA_THRESHOLD_SLOT, slot);
 			tag.putInt(DATA_LOWER_THRESHOLD, lowerThreshold);
 			return tag;
 		});
 	}
 
-	public int getUpperThreshold() {
-		return upgradeWrapper.getUpperThreshold();
+	public int getUpperThreshold(int slot) {
+		return upgradeWrapper.getUpperThreshold(slot);
 	}
 
-	public void setUpperThreshold(int upperThreshold) {
-		upgradeWrapper.setUpperThreshold(upperThreshold);
+	public void setUpperThreshold(int slot, int upperThreshold) {
+		upgradeWrapper.setUpperThreshold(slot, upperThreshold);
 		sendDataToServer(() -> {
 			CompoundTag tag = new CompoundTag();
+			tag.putInt(DATA_THRESHOLD_SLOT, slot);
 			tag.putInt(DATA_UPPER_THRESHOLD, upperThreshold);
 			return tag;
 		});
+	}
+
+	/** The item currently in the given ghost filter slot (client display helper). */
+	public net.minecraft.world.item.ItemStack getFilterStack(int slot) {
+		var filterSlots = filterLogicContainer.getFilterSlots();
+		return slot >= 0 && slot < filterSlots.size() ? filterSlots.get(slot).getItem() : net.minecraft.world.item.ItemStack.EMPTY;
+	}
+
+	public int getFilterSlotCount() {
+		return filterLogicContainer.getFilterSlots().size();
 	}
 
 	public String getDeliveryAddress() {

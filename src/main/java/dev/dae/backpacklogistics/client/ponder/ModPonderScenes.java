@@ -111,7 +111,7 @@ public class ModPonderScenes {
 		scene.idle(100);
 		scene.overlay()
 				.showText(90)
-				.text("'Call below' and 'Fill to' set the stock range: dropping under the lower bound orders enough to reach the upper bound")
+				.text("'Call below' and 'Fill to' set the stock range per filter slot: dropping under the lower bound orders enough to reach the upper bound")
 				.placeNearTarget()
 				.pointAt(util.vector().blockSurface(backpack, Direction.UP));
 		scene.idle(110);

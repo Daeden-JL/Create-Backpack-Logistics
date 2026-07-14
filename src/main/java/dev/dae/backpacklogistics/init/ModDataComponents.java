@@ -2,6 +2,7 @@ package dev.dae.backpacklogistics.init;
 
 import com.mojang.serialization.Codec;
 import dev.dae.backpacklogistics.BackpackLogistics;
+import java.util.List;
 import java.util.UUID;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
@@ -24,6 +25,15 @@ public class ModDataComponents {
 	/** Lower threshold: stock callers order below this amount, senders keep this amount. */
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> LOWER_THRESHOLD = DATA_COMPONENTS.registerComponentType(
 			"lower_threshold", builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
+	/** Per-filter-slot thresholds for stock callers; entries <= 0 fall back to the single-value components above. */
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<Integer>>> LOWER_THRESHOLDS = DATA_COMPONENTS.registerComponentType(
+			"lower_thresholds", builder -> builder.persistent(Codec.INT.listOf())
+					.networkSynchronized(ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list())));
+
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<Integer>>> UPPER_THRESHOLDS = DATA_COMPONENTS.registerComponentType(
+			"upper_thresholds", builder -> builder.persistent(Codec.INT.listOf())
+					.networkSynchronized(ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list())));
 
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> UNPACK_ADDRESS = DATA_COMPONENTS.registerComponentType(
 			"unpack_address", builder -> builder.persistent(Codec.STRING).networkSynchronized(ByteBufCodecs.STRING_UTF8));

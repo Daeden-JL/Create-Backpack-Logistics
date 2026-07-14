@@ -15,6 +15,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -68,30 +69,55 @@ public class StockCallerUpgradeWrapper extends UpgradeWrapperBase<StockCallerUpg
 		return upgrade.get(ModDataComponents.LINKED_NETWORK.get());
 	}
 
-	public int getLowerThreshold() {
+	/** Per-slot lower threshold; unset slots fall back to the legacy single value, then the default. */
+	public int getLowerThreshold(int slot) {
+		int perSlot = getListValue(ModDataComponents.LOWER_THRESHOLDS.get(), slot);
+		if (perSlot > 0) {
+			return perSlot;
+		}
 		return upgrade.getOrDefault(ModDataComponents.LOWER_THRESHOLD.get(), DEFAULT_LOWER_THRESHOLD);
 	}
 
-	public void setLowerThreshold(int lowerThreshold) {
+	public void setLowerThreshold(int slot, int lowerThreshold) {
 		int clamped = Mth.clamp(lowerThreshold, 1, MAX_THRESHOLD);
-		upgrade.set(ModDataComponents.LOWER_THRESHOLD.get(), clamped);
-		if (getUpperThreshold() < clamped) {
-			upgrade.set(ModDataComponents.UPPER_THRESHOLD.get(), clamped);
+		setListValue(ModDataComponents.LOWER_THRESHOLDS.get(), slot, clamped);
+		if (getUpperThreshold(slot) < clamped) {
+			setListValue(ModDataComponents.UPPER_THRESHOLDS.get(), slot, clamped);
 		}
 		save();
 	}
 
-	public int getUpperThreshold() {
+	/** Per-slot upper threshold; unset slots fall back to the legacy single value, then the default. */
+	public int getUpperThreshold(int slot) {
+		int perSlot = getListValue(ModDataComponents.UPPER_THRESHOLDS.get(), slot);
+		if (perSlot > 0) {
+			return perSlot;
+		}
 		return upgrade.getOrDefault(ModDataComponents.UPPER_THRESHOLD.get(), DEFAULT_UPPER_THRESHOLD);
 	}
 
-	public void setUpperThreshold(int upperThreshold) {
+	public void setUpperThreshold(int slot, int upperThreshold) {
 		int clamped = Mth.clamp(upperThreshold, 1, MAX_THRESHOLD);
-		upgrade.set(ModDataComponents.UPPER_THRESHOLD.get(), clamped);
-		if (getLowerThreshold() > clamped) {
-			upgrade.set(ModDataComponents.LOWER_THRESHOLD.get(), clamped);
+		setListValue(ModDataComponents.UPPER_THRESHOLDS.get(), slot, clamped);
+		if (getLowerThreshold(slot) > clamped) {
+			setListValue(ModDataComponents.LOWER_THRESHOLDS.get(), slot, clamped);
 		}
 		save();
+	}
+
+	private int getListValue(DataComponentType<List<Integer>> component, int slot) {
+		List<Integer> values = upgrade.get(component);
+		return values != null && slot >= 0 && slot < values.size() ? values.get(slot) : 0;
+	}
+
+	private void setListValue(DataComponentType<List<Integer>> component, int slot, int value) {
+		List<Integer> current = upgrade.get(component);
+		List<Integer> values = new ArrayList<>(current != null ? current : List.of());
+		while (values.size() <= slot) {
+			values.add(0);
+		}
+		values.set(slot, value);
+		upgrade.set(component, List.copyOf(values));
 	}
 
 	/** Address used to receive deliveries (and unpack packages) while the backpack is placed as a block. */
@@ -138,16 +164,20 @@ public class StockCallerUpgradeWrapper extends UpgradeWrapperBase<StockCallerUpg
 
 		prunePromises(level.getGameTime());
 
-		List<ItemStack> targets = getDistinctFilterItems();
-		if (targets.isEmpty()) {
-			return;
-		}
-
-		int lowerThreshold = getLowerThreshold();
-		int upperThreshold = Math.max(getUpperThreshold(), lowerThreshold);
+		// each filter slot has its own stock range; duplicate items are handled by their first slot only
+		ItemStackHandler filterHandler = filterLogic.getFilterHandler();
+		List<ItemStack> alreadyHandled = new ArrayList<>();
 		InventorySummary networkStock = null;
 
-		for (ItemStack target : targets) {
+		for (int slot = 0; slot < filterHandler.getSlots(); slot++) {
+			ItemStack target = filterHandler.getStackInSlot(slot);
+			if (target.isEmpty() || containsSameItem(alreadyHandled, target)) {
+				continue;
+			}
+			alreadyHandled.add(target);
+
+			int lowerThreshold = getLowerThreshold(slot);
+			int upperThreshold = Math.max(getUpperThreshold(slot), lowerThreshold);
 			int have = countMatching(storageWrapper.getInventoryForUpgradeProcessing(), target)
 					+ countInPendingPackages(player, deliveryAddress, target)
 					+ getPromisedCount(target);
@@ -171,26 +201,13 @@ public class StockCallerUpgradeWrapper extends UpgradeWrapperBase<StockCallerUpg
 		}
 	}
 
-	private List<ItemStack> getDistinctFilterItems() {
-		List<ItemStack> targets = new ArrayList<>();
-		ItemStackHandler filterHandler = filterLogic.getFilterHandler();
-		for (int slot = 0; slot < filterHandler.getSlots(); slot++) {
-			ItemStack filterStack = filterHandler.getStackInSlot(slot);
-			if (filterStack.isEmpty()) {
-				continue;
-			}
-			boolean alreadyIncluded = false;
-			for (ItemStack existing : targets) {
-				if (ItemStack.isSameItemSameComponents(existing, filterStack)) {
-					alreadyIncluded = true;
-					break;
-				}
-			}
-			if (!alreadyIncluded) {
-				targets.add(filterStack);
+	private static boolean containsSameItem(List<ItemStack> stacks, ItemStack stack) {
+		for (ItemStack existing : stacks) {
+			if (ItemStack.isSameItemSameComponents(existing, stack)) {
+				return true;
 			}
 		}
-		return targets;
+		return false;
 	}
 
 	private int countMatching(IItemHandler handler, ItemStack target) {
