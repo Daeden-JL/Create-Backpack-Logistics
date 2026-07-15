@@ -120,6 +120,23 @@ public class StockCallerUpgradeWrapper extends UpgradeWrapperBase<StockCallerUpg
 		upgrade.set(component, List.copyOf(values));
 	}
 
+	/** Whether the given slot is currently filling toward its upper threshold (see the tick loop). */
+	private boolean isSlotFilling(int slot) {
+		List<Boolean> values = upgrade.get(ModDataComponents.ACTIVE_SLOTS.get());
+		return values != null && slot >= 0 && slot < values.size() && Boolean.TRUE.equals(values.get(slot));
+	}
+
+	private void setSlotFilling(int slot, boolean filling) {
+		List<Boolean> current = upgrade.get(ModDataComponents.ACTIVE_SLOTS.get());
+		List<Boolean> values = new ArrayList<>(current != null ? current : List.of());
+		while (values.size() <= slot) {
+			values.add(Boolean.FALSE);
+		}
+		values.set(slot, filling);
+		upgrade.set(ModDataComponents.ACTIVE_SLOTS.get(), List.copyOf(values));
+		save();
+	}
+
 	/** Address used to receive deliveries (and unpack packages) while the backpack is placed as a block. */
 	public String getDeliveryAddress() {
 		return upgrade.getOrDefault(ModDataComponents.UNPACK_ADDRESS.get(), "");
@@ -181,7 +198,21 @@ public class StockCallerUpgradeWrapper extends UpgradeWrapperBase<StockCallerUpg
 			int have = countMatching(storageWrapper.getInventoryForUpgradeProcessing(), target)
 					+ countInPendingPackages(player, deliveryAddress, target)
 					+ getPromisedCount(target);
-			if (have >= lowerThreshold) {
+
+			// once stock drops below the lower bound, keep ordering every check until the upper
+			// bound is actually reached - otherwise a call that undershoots (limited network
+			// stock, a busy packager, a partial delivery) strands the slot between the bounds
+			// forever, since "have" alone would never dip below the lower bound again to retrigger
+			boolean filling = isSlotFilling(slot);
+			if (have < lowerThreshold) {
+				filling = true;
+			} else if (have >= upperThreshold) {
+				filling = false;
+			}
+			if (filling != isSlotFilling(slot)) {
+				setSlotFilling(slot, filling);
+			}
+			if (!filling) {
 				continue;
 			}
 

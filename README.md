@@ -32,6 +32,13 @@ bees — and includes the Auto-Unpacker's behaviour, so arriving packages are un
 3. Every 5 seconds it checks the range; when below the lower bound, it broadcasts a package request.
    Carried, requests are addressed to your player name and a Bee Port dispatches a robo bee to you;
    either way the upgrade unboxes deliveries straight into the backpack.
+4. On the advanced version each of the nine filter slots has its own independent range — press the
+   **Slot** selector to switch which slot's thresholds you're editing.
+
+Once stock drops below the lower bound, that slot keeps calling on every check until it actually
+reaches the upper bound, even across several checks — so a call that undershoots (limited network
+stock, a busy packager, a partial delivery) doesn't strand it partway through the range. The Sender
+mirrors this: once above the upper bound it keeps draining until it's back down to the lower bound.
 
 Number selectors: left-click +, right-click −, scroll to adjust; Shift = ×8, Ctrl = ×64.
 

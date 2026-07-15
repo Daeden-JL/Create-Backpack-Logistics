@@ -178,12 +178,34 @@ public class SenderUpgradeWrapper extends UpgradeWrapperBase<SenderUpgradeWrappe
 		IItemHandler backpackInventory = storageWrapper.getInventoryForUpgradeProcessing();
 		int lowerThreshold = getLowerThreshold();
 		int upperThreshold = Math.max(getUpperThreshold(), lowerThreshold);
+		var filterHandler = filterLogic.getFilterHandler();
+		List<ItemStack> alreadyHandled = new ArrayList<>();
 
-		for (ItemStack target : getDistinctFilterItems()) {
-			int have = countMatching(backpackInventory, target);
-			if (have <= upperThreshold) {
+		for (int slot = 0; slot < filterHandler.getSlots(); slot++) {
+			ItemStack target = filterHandler.getStackInSlot(slot);
+			if (target.isEmpty() || containsSameItem(alreadyHandled, target)) {
 				continue;
 			}
+			alreadyHandled.add(target);
+
+			int have = countMatching(backpackInventory, target);
+
+			// once stock rises above the upper bound, keep draining every check until the lower
+			// bound is actually reached - otherwise a send that undershoots (the 9-stack batch
+			// cap, a slot that can't extract cleanly) strands the item between the bounds forever
+			boolean draining = isSlotDraining(slot);
+			if (have > upperThreshold) {
+				draining = true;
+			} else if (have <= lowerThreshold) {
+				draining = false;
+			}
+			if (draining != isSlotDraining(slot)) {
+				setSlotDraining(slot, draining);
+			}
+			if (!draining) {
+				continue;
+			}
+
 			int excess = have - lowerThreshold;
 			while (excess > 0 && toSend.size() < MAX_STACKS_PER_SEND) {
 				int extracted = extractMatching(backpackInventory, target, Math.min(excess, target.getMaxStackSize()), toSend);
@@ -199,26 +221,29 @@ public class SenderUpgradeWrapper extends UpgradeWrapperBase<SenderUpgradeWrappe
 		return toSend;
 	}
 
-	private List<ItemStack> getDistinctFilterItems() {
-		List<ItemStack> targets = new ArrayList<>();
-		var filterHandler = filterLogic.getFilterHandler();
-		for (int slot = 0; slot < filterHandler.getSlots(); slot++) {
-			ItemStack filterStack = filterHandler.getStackInSlot(slot);
-			if (filterStack.isEmpty()) {
-				continue;
-			}
-			boolean alreadyIncluded = false;
-			for (ItemStack existing : targets) {
-				if (ItemStack.isSameItemSameComponents(existing, filterStack)) {
-					alreadyIncluded = true;
-					break;
-				}
-			}
-			if (!alreadyIncluded) {
-				targets.add(filterStack);
+	private static boolean containsSameItem(List<ItemStack> stacks, ItemStack stack) {
+		for (ItemStack existing : stacks) {
+			if (ItemStack.isSameItemSameComponents(existing, stack)) {
+				return true;
 			}
 		}
-		return targets;
+		return false;
+	}
+
+	private boolean isSlotDraining(int slot) {
+		List<Boolean> values = upgrade.get(ModDataComponents.ACTIVE_SLOTS.get());
+		return values != null && slot >= 0 && slot < values.size() && Boolean.TRUE.equals(values.get(slot));
+	}
+
+	private void setSlotDraining(int slot, boolean draining) {
+		List<Boolean> current = upgrade.get(ModDataComponents.ACTIVE_SLOTS.get());
+		List<Boolean> values = new ArrayList<>(current != null ? current : List.of());
+		while (values.size() <= slot) {
+			values.add(Boolean.FALSE);
+		}
+		values.set(slot, draining);
+		upgrade.set(ModDataComponents.ACTIVE_SLOTS.get(), List.copyOf(values));
+		save();
 	}
 
 	private int countMatching(IItemHandler handler, ItemStack target) {

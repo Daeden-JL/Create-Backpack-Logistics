@@ -35,6 +35,16 @@ public class ModDataComponents {
 			"upper_thresholds", builder -> builder.persistent(Codec.INT.listOf())
 					.networkSynchronized(ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list())));
 
+	/**
+	 * Per-filter-slot "actively working toward the target" flags. A stock caller slot turns
+	 * active when stock drops below its lower threshold and stays active until the upper
+	 * threshold is actually reached (senders mirror this for draining), so a partial fill
+	 * that lands between the two bounds doesn't get stranded there.
+	 */
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<Boolean>>> ACTIVE_SLOTS = DATA_COMPONENTS.registerComponentType(
+			"active_slots", builder -> builder.persistent(Codec.BOOL.listOf())
+					.networkSynchronized(ByteBufCodecs.BOOL.apply(ByteBufCodecs.list())));
+
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> UNPACK_ADDRESS = DATA_COMPONENTS.registerComponentType(
 			"unpack_address", builder -> builder.persistent(Codec.STRING).networkSynchronized(ByteBufCodecs.STRING_UTF8));
 
