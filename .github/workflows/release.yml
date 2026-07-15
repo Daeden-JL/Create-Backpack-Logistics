@@ -29,6 +29,16 @@ jobs:
       - name: Generate release metadata
         run: python3 scripts/generate_release_meta.py
 
+      - name: Remove any existing release for this tag
+        # Re-running this workflow for a tag (e.g. after a bad build) must not leave stale
+        # assets from the previous run sitting alongside the new ones - the auto-updater
+        # picks the first matching jar by name, so a stale asset can shadow the real one.
+        # softprops/action-gh-release only adds/replaces the files it's given; it does not
+        # remove old ones, so the existing release (if any) is deleted first for a clean slate.
+        run: gh release delete "${{ github.ref_name }}" --yes || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
